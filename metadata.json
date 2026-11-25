@@ -1,0 +1,8 @@
+{
+  "name": "PyGrade UTU — Platform Auto-Grading Python Berbasis Test Case",
+  "description": "Platform praktikum dan penilaian otomatis kode Python berbasis test case untuk mahasiswa Program Studi Teknologi Informasi, Fakultas Teknik, Universitas Teuku Umar.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
