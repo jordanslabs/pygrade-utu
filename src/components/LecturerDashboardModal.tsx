@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react';
 import {
+  AlertTriangle,
   Award,
+  Check,
   CheckCircle2,
+  Copy,
   Cpu,
+  Database,
   Download,
+  ExternalLink,
   GraduationCap,
+  Radio,
   RefreshCw,
   Search,
   Server,
@@ -12,7 +18,12 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { fetchAllRecords, type StudentRecord } from '../services/recordService';
+import {
+  fetchRecordsWithStatus,
+  getSyncStatus,
+  type StudentRecord,
+  type SyncStatus,
+} from '../services/recordService';
 
 interface LecturerDashboardModalProps {
   isOpen: boolean;
@@ -36,14 +47,23 @@ export function LecturerDashboardModal({
   const [searchQuery, setSearchQuery] = useState('');
   const [isEngineConfigOpen, setIsEngineConfigOpen] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>(() => getSyncStatus());
+  const [showSqlGuide, setShowSqlGuide] = useState(false);
+  const [copiedSql, setCopiedSql] = useState(false);
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const data = await fetchAllRecords();
+      const { records: data, status } = await fetchRecordsWithStatus();
       setRecords(data);
+      setSyncStatus(status);
+      if (status.lastError) {
+        setNotice(`Koneksi Supabase terkendala: ${status.lastError}. Menampilkan ${data.length} data dari penyimpanan lokal.`);
+      } else if (status.source === 'supabase') {
+        setNotice(`Data berhasil disinkronkan secara real-time dari Cloud Supabase (${data.length} mahasiswa).`);
+      }
     } catch {
-      // Fallback already handled inside fetchAllRecords
+      // Fallback already handled inside fetchRecordsWithStatus
     } finally {
       setIsLoading(false);
     }
@@ -84,6 +104,32 @@ export function LecturerDashboardModal({
     susRecords.length > 0
       ? Number((susRecords.reduce((acc, r) => acc + (r.skor_sus ?? 0), 0) / susRecords.length).toFixed(1))
       : null;
+
+  const sqlFixScript = `-- ==============================================================================
+-- PyGrade UTU - Skrip Perizinan Akses Tabel & RLS Supabase
+-- ==============================================================================
+GRANT ALL ON TABLE public.student_records TO anon, authenticated, service_role;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+
+ALTER TABLE public.student_records ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Public student_records select" ON public.student_records;
+CREATE POLICY "Public student_records select" ON public.student_records FOR SELECT TO anon, authenticated USING (true);
+
+DROP POLICY IF EXISTS "Public student_records insert" ON public.student_records;
+CREATE POLICY "Public student_records insert" ON public.student_records FOR INSERT TO anon, authenticated WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public student_records update" ON public.student_records;
+CREATE POLICY "Public student_records update" ON public.student_records FOR UPDATE TO anon, authenticated USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Public student_records delete" ON public.student_records;
+CREATE POLICY "Public student_records delete" ON public.student_records FOR DELETE TO anon, authenticated USING (true);`;
+
+  const handleCopySql = () => {
+    navigator.clipboard.writeText(sqlFixScript);
+    setCopiedSql(true);
+    setTimeout(() => setCopiedSql(false), 3000);
+  };
 
   const handleDownloadCsv = () => {
     if (records.length === 0) {
@@ -251,6 +297,99 @@ export function LecturerDashboardModal({
             </div>
           )}
 
+          {/* Cloud Sync Status Indicator */}
+          {syncStatus.isConnected && syncStatus.source === 'supabase' ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50/70 px-4 py-3 text-xs text-emerald-900">
+              <div className="flex items-center gap-2.5">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
+                </span>
+                <span className="font-semibold text-emerald-900">Status Sinkronisasi Cloud: Terhubung Live (Supabase)</span>
+                <span className="text-emerald-700 hidden sm:inline">· Nilai mahasiswa langsung tersinkronisasi lintas perangkat</span>
+              </div>
+              {syncStatus.lastSyncedAt && (
+                <span className="text-[11px] text-emerald-700/80 font-mono">
+                  Refresh: {new Date(syncStatus.lastSyncedAt).toLocaleTimeString('id-ID')}
+                </span>
+              )}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-amber-300 bg-amber-50/80 p-4 sm:p-5 text-xs text-amber-950 space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-white shrink-0">
+                    <AlertTriangle className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm text-amber-950">
+                      Sinkronisasi Cloud Supabase Terkendala ({syncStatus.errorCode ?? 'Error 42501'}: Izin Akses Tabel Ditolak)
+                    </h4>
+                    <p className="text-amber-800/90 text-xs mt-0.5">
+                      Role <code className="bg-amber-200/60 px-1 py-0.5 rounded font-mono">anon</code> belum diberi izin akses (GRANT / RLS Policy) pada tabel <code className="bg-amber-200/60 px-1 py-0.5 rounded font-mono">public.student_records</code> di database Supabase.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowSqlGuide((prev) => !prev)}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-amber-700 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-800 transition-colors shadow-xs"
+                  >
+                    <Database className="h-3.5 w-3.5" />
+                    <span>{showSqlGuide ? 'Tutup Panduan SQL' : 'Buka Solusi Perbaikan SQL (1-Klik)'}</span>
+                  </button>
+                </div>
+              </div>
+
+              <div className="text-[11px] text-amber-800/80 flex items-center gap-1.5">
+                <Radio className="h-3.5 w-3.5 text-amber-600 shrink-0" />
+                <span>
+                  <strong>Mode Saat Ini:</strong> Menampilkan cadangan data lokal browser ini ({records.length} data). Mahasiswa dari gawai/laptop lain belum bisa mengirim nilai ke Cloud sampai skrip SQL diaktifkan di Supabase.
+                </span>
+              </div>
+
+              {showSqlGuide && (
+                <div className="rounded-xl border border-amber-200 bg-white p-4 space-y-3 text-xs text-[#0f2f63] mt-2 shadow-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-xs text-[#0f2f63]">
+                      Langkah Perbaikan di Supabase Dashboard:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleCopySql}
+                      className="inline-flex items-center gap-1.5 rounded-md bg-[#2563c9] px-2.5 py-1 text-xs font-medium text-white hover:bg-[#1d52ad] transition-colors"
+                    >
+                      {copiedSql ? <Check className="h-3.5 w-3.5 text-emerald-300" /> : <Copy className="h-3.5 w-3.5" />}
+                      <span>{copiedSql ? 'Tersalin ke Clipboard!' : 'Salin Skrip SQL'}</span>
+                    </button>
+                  </div>
+
+                  <ol className="list-decimal list-inside space-y-1 text-xs text-[#0f2f63]/80 leading-relaxed">
+                    <li>Buka project Supabase Anda:{' '}
+                      <a
+                        href="https://supabase.com/dashboard/project/bnasudkyanhosbvovenv/sql"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[#2563c9] underline font-medium inline-flex items-center gap-0.5"
+                      >
+                        Buka SQL Editor Supabase <ExternalLink className="h-3 w-3 inline" />
+                      </a>
+                    </li>
+                    <li>Buat <strong>New Query</strong>, lalu tempel (Paste) skrip SQL di bawah ini.</li>
+                    <li>Klik tombol <strong>Run</strong> (atau tekan Ctrl+Enter).</li>
+                    <li>Setelah sukses, kembali ke dashboard ini dan klik tombol <strong>Refresh Data</strong>.</li>
+                  </ol>
+
+                  <pre className="overflow-x-auto rounded-lg bg-[#081730] p-3 font-mono text-[11px] text-emerald-400 max-h-48 whitespace-pre">
+                    {sqlFixScript}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Stats Metric Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="rounded-2xl border border-[#e6e8ec] bg-[#f4f4f4]/60 p-5 space-y-1">
@@ -261,7 +400,11 @@ export function LecturerDashboardModal({
               <p className="text-3xl sm:text-4xl font-medium text-[#0f2f63] tabular-nums">
                 {totalStudents}
               </p>
-              <p className="text-[11px] text-[#0f2f63]/55">Tersinkronisasi dengan Supabase</p>
+              <p className="text-[11px] text-[#0f2f63]/55">
+                {syncStatus.source === 'supabase' && syncStatus.isConnected
+                  ? 'Tersinkronisasi Real-Time (Cloud)'
+                  : 'Sumber: Cadangan Penyimpanan Lokal'}
+              </p>
             </div>
 
             <div className="rounded-2xl border border-[#e6e8ec] bg-[#f4f4f4]/60 p-5 space-y-1">
