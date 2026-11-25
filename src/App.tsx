@@ -177,7 +177,7 @@ export default function App() {
   const solvedCount = Object.values(solvedScores).filter((s) => s === 100).length;
 
   return (
-    <div className="min-h-screen bg-white p-2 sm:p-3">
+    <div className="min-h-screen bg-white p-2 sm:p-3 overflow-x-hidden">
       <div className="mx-auto max-w-[1440px] space-y-2 sm:space-y-3">
         <main className="space-y-2 sm:space-y-3">
           <HeroSection
