@@ -4,8 +4,11 @@ import {
   ArrowRight,
   BookOpen,
   CheckCircle2,
+  ChevronRight,
   Clock,
+  Code2,
   Cpu,
+  HelpCircle,
   Lightbulb,
   Lock,
   Play,
@@ -13,6 +16,7 @@ import {
   Send,
   Server,
   Sliders,
+  Sparkles,
   Terminal,
   X,
   XCircle,
@@ -124,6 +128,37 @@ export function AutoGraderModal({
     Record<string, EvaluationResult | null>
   >({});
 
+  // Pelacak Percobaan & Petunjuk Bertingkat
+  const [attemptsByProblem, setAttemptsByProblem] = useState<Record<string, number>>({});
+  const [unlockedHintStage, setUnlockedHintStage] = useState<Record<string, number>>({});
+  const [isHintPanelOpen, setIsHintPanelOpen] = useState(false);
+  const [activeHintTab, setActiveHintTab] = useState<1 | 2 | 3>(1);
+
+  const currentAttempt = attemptsByProblem[activeProblem.id] ?? 0;
+  const currentHintStage = unlockedHintStage[activeProblem.id] ?? 0;
+
+  const handleOpenHint = () => {
+    if (currentHintStage === 0) {
+      setUnlockedHintStage((prev) => ({
+        ...prev,
+        [activeProblem.id]: 1,
+      }));
+      setActiveHintTab(1);
+    } else {
+      setActiveHintTab(currentHintStage as 1 | 2 | 3);
+    }
+    setIsHintPanelOpen(true);
+  };
+
+  const handleUnlockNextHint = () => {
+    const nextStage = Math.min(3, currentHintStage + 1);
+    setUnlockedHintStage((prev) => ({
+      ...prev,
+      [activeProblem.id]: nextStage,
+    }));
+    setActiveHintTab(nextStage as 1 | 2 | 3);
+  };
+
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const gutterRef = useRef<HTMLDivElement | null>(null);
   const engineSettingsRef = useRef<HTMLDivElement | null>(null);
@@ -228,6 +263,12 @@ export function AutoGraderModal({
   const runEvaluation = async (mode: 'sample' | 'submit') => {
     setIsRunning(true);
     setBackendNotice(null);
+
+    // Catat penambahan jumlah percobaan untuk modul aktif
+    setAttemptsByProblem((prev) => ({
+      ...prev,
+      [activeProblem.id]: (prev[activeProblem.id] ?? 0) + 1,
+    }));
 
     if (executionMode === 'backend') {
       try {
@@ -612,6 +653,36 @@ export function AutoGraderModal({
                     </div>
                   </div>
 
+                  {/* Guided Hint Card (3 Tahap Bantuan) */}
+                  <div className="rounded-2xl border border-amber-200/90 bg-amber-50/70 p-4 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Lightbulb className="h-4 w-4 text-amber-600 shrink-0" />
+                        <h4 className="font-semibold text-xs text-amber-950">
+                          Bantuan Pedagogis Bertingkat (3 Tahap)
+                        </h4>
+                      </div>
+                      <span className="text-[10px] font-mono font-medium text-amber-800 bg-amber-200/60 px-2 py-0.5 rounded-full">
+                        {currentHintStage === 0 ? 'Terkunci' : `Tahap ${currentHintStage}/3 Terbuka`}
+                      </span>
+                    </div>
+                    <p className="text-xs text-amber-900/80 leading-relaxed">
+                      Mengalami kendala logika atau penulisan kode? Dapatkan petunjuk bertahap tanpa langsung melihat kunci jawaban.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleOpenHint}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-amber-600 px-3.5 py-1.5 text-xs font-medium text-white hover:bg-amber-700 transition-colors shadow-xs"
+                    >
+                      <Lightbulb className="h-3.5 w-3.5" />
+                      <span>
+                        {currentHintStage === 0
+                          ? 'Butuh Petunjuk? (Buka Tahap 1/3)'
+                          : `Lihat Petunjuk (Tahap ${currentHintStage}/3)`}
+                      </span>
+                    </button>
+                  </div>
+
                   {/* Public Test Case #1 Preview */}
                   <div className="space-y-2.5 pt-4 border-t border-[#e6e8ec]">
                     <div className="flex items-center justify-between">
@@ -653,22 +724,47 @@ export function AutoGraderModal({
             {/* Panel Kanan Atas: Editor Kode (#081730) */}
             <div className="flex flex-col flex-1 min-h-[260px] bg-[#081730] text-white">
               <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10 bg-[#0a1d3b] shrink-0">
-                <div className="flex items-center gap-2 text-xs font-mono text-[#8fb8f3]">
-                  <Terminal className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>solusi_modul_{activeProblem.number}.py</span>
+                <div className="flex items-center gap-2 text-xs font-mono text-[#8fb8f3] min-w-0">
+                  <Terminal className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                  <span className="truncate">solusi_modul_{activeProblem.number}.py</span>
                   <span className="text-white/40 hidden sm:inline">
                     · Tab = 4 spasi
                   </span>
+                  {currentAttempt > 0 && (
+                    <span className="ml-1 inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[10px] text-amber-200 border border-white/10 font-sans font-semibold shrink-0">
+                      Attempt #{currentAttempt}
+                    </span>
+                  )}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleResetCode}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/80 hover:bg-white/15 hover:text-white transition-colors"
-                >
-                  <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-                  <span>Reset Kode</span>
-                </button>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={handleOpenHint}
+                    className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                      currentHintStage > 0
+                        ? 'bg-amber-400/20 text-amber-300 border border-amber-400/35 hover:bg-amber-400/30'
+                        : 'bg-white/10 text-white/90 border border-white/15 hover:bg-white/20'
+                    }`}
+                    title="Buka petunjuk bertingkat untuk modul ini"
+                  >
+                    <Lightbulb className="h-3.5 w-3.5 text-amber-300" />
+                    <span>
+                      {currentHintStage === 0
+                        ? 'Butuh Petunjuk? (Hint 1/3)'
+                        : `Petunjuk (${currentHintStage}/3)`}
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleResetCode}
+                    className="inline-flex items-center gap-1.5 rounded-md border border-white/15 bg-white/5 px-2.5 py-1 text-xs text-white/80 hover:bg-white/15 hover:text-white transition-colors"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span className="hidden sm:inline">Reset Kode</span>
+                  </button>
+                </div>
               </div>
 
               <div className="relative flex-1 flex min-h-0 overflow-hidden">
@@ -707,9 +803,16 @@ export function AutoGraderModal({
             <div className="flex flex-col h-[46%] min-h-[250px] border-t border-[#e6e8ec] bg-white">
               {/* Console Action Toolbar */}
               <div className="flex flex-wrap items-center justify-between gap-2.5 px-4 py-3 bg-[#f4f4f4] border-b border-[#e6e8ec] shrink-0">
-                <span className="text-xs font-medium text-[#0f2f63]">
-                  Konsol Umpan Balik Instan
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-medium text-[#0f2f63]">
+                    Konsol Umpan Balik Instan
+                  </span>
+                  {currentAttempt > 0 && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-[#0f2f63]/10 px-2 py-0.5 text-[11px] font-mono font-medium text-[#0f2f63]">
+                      Percobaan ke-{currentAttempt}
+                    </span>
+                  )}
+                </div>
 
                 <div className="flex items-center gap-2">
                   <button
@@ -779,6 +882,11 @@ export function AutoGraderModal({
                             </div>
 
                             <div className="flex items-center gap-4 text-xs font-mono tabular-nums">
+                              {currentAttempt > 0 && (
+                                <span className="inline-flex items-center gap-1 rounded bg-[#0f2f63]/10 px-2 py-0.5 text-[11px] font-semibold text-[#0f2f63]">
+                                  Percobaan #{currentAttempt}
+                                </span>
+                              )}
                               <span className="font-medium">
                                 Skor: {currentResult.score}/100
                               </span>
@@ -848,31 +956,47 @@ export function AutoGraderModal({
                             {tr.isPublic ? (
                               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 font-mono text-[11px]">
                                 <div className="rounded-lg bg-white border border-[#e6e8ec] p-2.5">
-                                  <p className="text-[#0f2f63]/50 mb-1 font-sans text-[11px]">
-                                    Input
+                                  <p className="text-[#0f2f63]/60 mb-1 font-sans text-[11px] font-semibold">
+                                    Input (stdin)
                                   </p>
                                   <pre className="whitespace-pre-wrap text-[#0f2f63]">
                                     {tr.input}
                                   </pre>
                                 </div>
-                                <div className="rounded-lg bg-white border border-[#e6e8ec] p-2.5">
-                                  <p className="text-[#0f2f63]/50 mb-1 font-sans text-[11px]">
-                                    Output Diharapkan
+                                <div className="rounded-lg bg-emerald-50/70 border border-emerald-200 p-2.5">
+                                  <p className="text-emerald-800 mb-1 font-sans text-[11px] font-semibold flex items-center gap-1">
+                                    <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                                    Output Diharapkan (Expected)
                                   </p>
-                                  <pre className="whitespace-pre-wrap text-emerald-700">
+                                  <pre className="whitespace-pre-wrap text-emerald-800 font-bold">
                                     {tr.expectedOutput}
                                   </pre>
                                 </div>
-                                <div className="rounded-lg bg-white border border-[#e6e8ec] p-2.5">
-                                  <p className="text-[#0f2f63]/50 mb-1 font-sans text-[11px]">
-                                    Output Aktual
-                                  </p>
-                                  <pre
-                                    className={`whitespace-pre-wrap ${
-                                      tr.passed ? 'text-emerald-700' : 'text-rose-700'
+                                <div
+                                  className={`rounded-lg p-2.5 border ${
+                                    tr.passed
+                                      ? 'bg-emerald-50/70 border-emerald-200 text-emerald-800'
+                                      : 'bg-rose-50/80 border-rose-300 text-rose-800'
+                                  }`}
+                                >
+                                  <p
+                                    className={`mb-1 font-sans text-[11px] font-semibold flex items-center gap-1 ${
+                                      tr.passed ? 'text-emerald-800' : 'text-rose-800'
                                     }`}
                                   >
-                                    {tr.errorMessage ? tr.errorMessage : tr.actualOutput}
+                                    {tr.passed ? (
+                                      <CheckCircle2 className="h-3 w-3 text-emerald-600" />
+                                    ) : (
+                                      <XCircle className="h-3 w-3 text-rose-600" />
+                                    )}
+                                    Output Aktual Anda (Actual)
+                                  </p>
+                                  <pre className="whitespace-pre-wrap font-bold">
+                                    {tr.errorMessage
+                                      ? tr.errorMessage
+                                      : tr.actualOutput !== ''
+                                      ? tr.actualOutput
+                                      : '(Output kosong / tidak ada yang dicetak)'}
                                   </pre>
                                 </div>
                               </div>
@@ -884,16 +1008,29 @@ export function AutoGraderModal({
                               </div>
                             ) : (
                               /* Educational hint for failed hidden test case */
-                              <div className="flex flex-col gap-1.5 text-xs bg-amber-50/80 border border-amber-200 rounded-xl p-3.5">
-                                <div className="flex items-center gap-1.5 font-medium text-amber-900">
-                                  <Lightbulb className="h-4 w-4 text-amber-600 shrink-0" aria-hidden="true" />
-                                  <span className="font-semibold">Petunjuk Kasus Uji Tersembunyi:</span>
+                              <div className="flex flex-col gap-2 text-xs bg-amber-50/80 border border-amber-300 rounded-xl p-3.5">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-1.5 font-medium text-amber-900">
+                                    <Lightbulb className="h-4 w-4 text-amber-600 shrink-0" aria-hidden="true" />
+                                    <span className="font-semibold">Petunjuk Kasus Uji Tersembunyi:</span>
+                                  </div>
+                                  <span className="text-[10px] font-mono font-medium bg-amber-200/70 text-amber-900 px-2 py-0.5 rounded">
+                                    Kasus Tersembunyi Gagal
+                                  </span>
                                 </div>
                                 <p className="text-amber-950 text-xs leading-relaxed">
                                   {tr.errorMessage
                                     ? tr.errorMessage
                                     : `Petunjuk: Periksa kembali penanganan skenario "${tr.description}". Pastikan alur logika dan batasan kondisi kode Anda mencakup kasus ini.`}
                                 </p>
+                                {tr.actualOutput && (
+                                  <div className="rounded-lg bg-white/90 border border-amber-200 p-2 text-[11px] font-mono text-[#0f2f63]">
+                                    <span className="text-gray-500 font-sans block text-[10px]">
+                                      Output yang dicetak program Anda:
+                                    </span>
+                                    <span className="text-rose-700 font-bold">{tr.actualOutput}</span>
+                                  </div>
+                                )}
                                 <p className="text-[11px] text-amber-800/70 pt-0.5">
                                   (Nilai input dan expected output angka dirahasiakan untuk melatih kemampuan penelusuran mandiri).
                                 </p>
@@ -909,6 +1046,175 @@ export function AutoGraderModal({
             </div>
           </div>
         </div>
+
+        {/* Modal Petunjuk Bertingkat (Guided Hints) */}
+        {isHintPanelOpen && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="hint-modal-title"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-[#081730]/75 p-3 sm:p-4 animate-overlay-fade"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setIsHintPanelOpen(false);
+            }}
+          >
+            <div className="animate-modal-enter w-full max-w-xl rounded-2xl bg-white shadow-2xl border border-[#e6e8ec] overflow-hidden flex flex-col text-[#0f2f63]">
+              {/* Header */}
+              <div className="bg-[#0f2f63] text-white px-5 py-4 flex items-center justify-between border-b border-white/10">
+                <div className="flex items-center gap-2.5">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                    <Lightbulb className="h-4 w-4" />
+                  </span>
+                  <div>
+                    <h3 id="hint-modal-title" className="text-sm sm:text-base font-semibold text-white">
+                      Petunjuk Bertingkat · Modul {activeProblem.number}
+                    </h3>
+                    <p className="text-[11px] text-[#8fb8f3]">
+                      {activeProblem.topic} · Tahap {currentHintStage} dari 3 Terbuka
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsHintPanelOpen(false)}
+                  className="h-8 w-8 rounded-lg border border-white/15 bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+                  aria-label="Tutup petunjuk"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Stages Tabs */}
+              <div className="flex border-b border-[#e6e8ec] bg-[#f4f4f4] p-1.5 gap-1.5 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setActiveHintTab(1)}
+                  className={`flex-1 py-2 px-2 rounded-lg font-medium transition-colors text-center ${
+                    activeHintTab === 1
+                      ? 'bg-white text-[#0f2f63] shadow-xs'
+                      : 'text-[#0f2f63]/70 hover:text-[#0f2f63]'
+                  }`}
+                >
+                  1. Konsep Logika
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (currentHintStage >= 2) setActiveHintTab(2);
+                  }}
+                  disabled={currentHintStage < 2}
+                  className={`flex-1 py-2 px-2 rounded-lg font-medium transition-colors text-center flex items-center justify-center gap-1 ${
+                    activeHintTab === 2
+                      ? 'bg-white text-[#0f2f63] shadow-xs'
+                      : currentHintStage < 2
+                      ? 'text-gray-400 opacity-60 cursor-not-allowed'
+                      : 'text-[#0f2f63]/70 hover:text-[#0f2f63]'
+                  }`}
+                >
+                  {currentHintStage < 2 && <Lock className="h-3 w-3 shrink-0" />}
+                  <span>2. Sintaks</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (currentHintStage >= 3) setActiveHintTab(3);
+                  }}
+                  disabled={currentHintStage < 3}
+                  className={`flex-1 py-2 px-2 rounded-lg font-medium transition-colors text-center flex items-center justify-center gap-1 ${
+                    activeHintTab === 3
+                      ? 'bg-white text-[#0f2f63] shadow-xs'
+                      : currentHintStage < 3
+                      ? 'text-gray-400 opacity-60 cursor-not-allowed'
+                      : 'text-[#0f2f63]/70 hover:text-[#0f2f63]'
+                  }`}
+                >
+                  {currentHintStage < 3 && <Lock className="h-3 w-3 shrink-0" />}
+                  <span>3. Alur I/O</span>
+                </button>
+              </div>
+
+              {/* Tab Body */}
+              <div className="p-5 space-y-4">
+                {activeHintTab === 1 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#2563c9]">
+                      <span className="flex h-5 w-5 rounded-full bg-[#2563c9]/10 items-center justify-center text-[11px]">1</span>
+                      <span>Tahap 1: Alur Logika Penyelesaian</span>
+                    </div>
+                    <div className="rounded-xl bg-[#f4f6fa] border border-[#e6e8ec] p-4 text-xs sm:text-sm text-[#0f2f63] leading-relaxed">
+                      {activeProblem.hints.tahap1}
+                    </div>
+                    {currentHintStage < 2 && (
+                      <button
+                        type="button"
+                        onClick={handleUnlockNextHint}
+                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-medium px-4 py-2.5 text-xs transition-colors shadow-xs"
+                      >
+                        <Lightbulb className="h-4 w-4" />
+                        <span>Buka Petunjuk Lanjutan (Tahap 2: Struktur Sintaks) →</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {activeHintTab === 2 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#0b6e97]">
+                      <span className="flex h-5 w-5 rounded-full bg-[#0b6e97]/10 items-center justify-center text-[11px]">2</span>
+                      <span>Tahap 2: Kata Kunci &amp; Struktur Sintaks</span>
+                    </div>
+                    <div className="rounded-xl bg-[#eaf4f9] border border-[#0b6e97]/30 p-4 text-xs sm:text-sm text-[#0f2f63] leading-relaxed font-mono">
+                      <p className="font-sans leading-relaxed">{activeProblem.hints.tahap2}</p>
+                    </div>
+                    {currentHintStage < 3 && (
+                      <button
+                        type="button"
+                        onClick={handleUnlockNextHint}
+                        className="w-full flex items-center justify-center gap-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-medium px-4 py-2.5 text-xs transition-colors shadow-xs"
+                      >
+                        <Lightbulb className="h-4 w-4" />
+                        <span>Buka Petunjuk Terakhir (Tahap 3: Contoh Alur I/O) →</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {activeHintTab === 3 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-emerald-800">
+                      <span className="flex h-5 w-5 rounded-full bg-emerald-100 items-center justify-center text-[11px]">3</span>
+                      <span>Tahap 3: Ilustrasi Membaca Input &amp; Output</span>
+                    </div>
+                    <div className="rounded-xl bg-emerald-50/70 border border-emerald-200 p-4 text-xs sm:text-sm text-emerald-950 leading-relaxed">
+                      {activeProblem.hints.tahap3}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-emerald-800 bg-white border border-emerald-200 rounded-lg p-2.5">
+                      <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                      <span>Seluruh 3 tahap petunjuk telah terbuka. Silakan coba terapkan di editor kode!</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="bg-[#f4f4f4] px-5 py-3 border-t border-[#e6e8ec] flex items-center justify-between text-xs">
+                <span className="text-[#0f2f63]/60 italic">
+                  *Petunjuk dirancang untuk mengarahkan alur pikir secara mandiri.
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsHintPanelOpen(false)}
+                  className="rounded-lg bg-[#0f2f63] px-3.5 py-1.5 text-xs font-medium text-white hover:bg-[#194285]"
+                >
+                  Tutup Petunjuk
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

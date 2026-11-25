@@ -10,6 +10,7 @@ import { SusSurveyModal } from './components/SusSurveyModal';
 import { AuthModal } from './components/AuthModal';
 import { LecturerDashboardModal } from './components/LecturerDashboardModal';
 import { CertificateModal } from './components/CertificateModal';
+import { LeaderboardSection } from './components/LeaderboardSection';
 import {
   type AuthUser,
   type UserRole,
@@ -47,6 +48,7 @@ export default function App() {
 
   const [solvedScores, setSolvedScores] = useState<Record<string, number>>({});
   const [lastSusScore, setLastSusScore] = useState<number | null>(null);
+  const [leaderboardRefreshTrigger, setLeaderboardRefreshTrigger] = useState(0);
 
   // Restore scores for logged in student
   useEffect(() => {
@@ -157,6 +159,7 @@ export default function App() {
           nama: user.nama,
           [modulField]: Math.max(prev[problemId] ?? 0, score),
         });
+        setLeaderboardRefreshTrigger((prev) => prev + 1);
       }
 
       return updated;
@@ -207,6 +210,11 @@ export default function App() {
             onSelectProblem={(id) => handleOpenGrader(id)}
             user={user}
             onOpenCertificate={() => setIsCertificateOpen(true)}
+          />
+
+          <LeaderboardSection
+            currentStudentNim={user?.role === 'mahasiswa' ? user.nim : undefined}
+            refreshTrigger={leaderboardRefreshTrigger}
           />
 
           <ArchitectureSection />

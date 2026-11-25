@@ -48,6 +48,7 @@ export function Navbar({
 
   const navLinks = [
     { label: 'Modul', href: '#modul' },
+    { label: 'Peringkat', href: '#leaderboard' },
     { label: 'Arsitektur', href: '#arsitektur' },
     { label: 'Evaluasi', href: '#evaluasi' },
   ];
@@ -207,8 +208,9 @@ export function Navbar({
             <nav aria-label="Menu layar penuh" className="lg:col-span-7 flex flex-col gap-4">
               {[
                 { num: '01', label: 'Daftar Modul Praktikum', href: '#modul' },
-                { num: '02', label: 'Arsitektur & Sandbox', href: '#arsitektur' },
-                { num: '03', label: 'Metrik Evaluasi Penelitian', href: '#evaluasi' },
+                { num: '02', label: 'Papan Peringkat Kelas', href: '#leaderboard' },
+                { num: '03', label: 'Arsitektur & Sandbox', href: '#arsitektur' },
+                { num: '04', label: 'Metrik Evaluasi Penelitian', href: '#evaluasi' },
               ].map((item) => (
                 <a
                   key={item.href}

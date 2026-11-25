@@ -14,6 +14,12 @@ export interface ProblemMateri {
   tipsPemula: string[];
 }
 
+export interface ProblemHints {
+  tahap1: string; // Konsep Logika
+  tahap2: string; // Struktur Sintaks
+  tahap3: string; // Contoh Alur Input/Output
+}
+
 export interface Problem {
   id: string;
   number: string;
@@ -23,6 +29,7 @@ export interface Problem {
   summary: string;
   description: string;
   materi: ProblemMateri;
+  hints: ProblemHints;
   inputFormat: string;
   outputFormat: string;
   constraints: string[];
@@ -61,6 +68,14 @@ print(total_bayar)`,
         'Fungsi input() membaca data per baris: input() pertama otomatis membaca harga satuan, dan input() kedua otomatis membaca jumlah barang.',
         'Di sistem auto-grader, input() dibaca otomatis dari sistem tanpa perlu menulis teks di dalam kurung seperti input("Masukkan harga: "). Jika ditulis, teks tersebut akan dianggap output yang salah.',
       ],
+    },
+    hints: {
+      tahap1:
+        'Pikirkan alur kasir di kantin: Anda mengetahui harga 1 barang dan banyaknya barang yang dibeli. Total yang harus dibayarkan adalah hasil operasi perkalian antara harga satuan dan jumlah barang.',
+      tahap2:
+        'Gunakan operator perkalian (*) dalam Python. Kalikan variabel harga dengan variabel jumlah, lalu simpan hasilnya ke dalam variabel total (misalnya: total = harga * jumlah).',
+      tahap3:
+        'Kedua nilai sudah dibaca oleh sistem dengan harga = int(input()) dan jumlah = int(input()). Anda cukup melengkapi baris perhitungan total = harga * jumlah tepat sebelum perintah print(total).',
     },
     inputFormat: 'Dua baris input: baris pertama berisi bilangan bulat harga satuan barang, dan baris kedua berisi bilangan bulat jumlah barang.',
     outputFormat: 'Satu baris berisi bilangan bulat total harga yang harus dibayar.',
@@ -137,6 +152,14 @@ else:
         'Perhatikan urutan kondisi: periksa nilai >= 70 terlebih dahulu sebelum nilai >= 50 agar nilai tinggi tidak keliru masuk ke status remedial.',
         'Perhatikan penulisan teks output: gunakan huruf kapital persis sesuai instruksi soal (LULUS, REMEDIAL, TIDAK LULUS).',
       ],
+    },
+    hints: {
+      tahap1:
+        'Gunakan pengujian bertingkat dari nilai terbesar ke terkecil: periksa terlebih dahulu apakah nilai memenuhi syarat lulus (>= 70). Jika tidak, periksa apakah memenuhi batas remedial (>= 50). Jika kedua syarat tersebut tidak terpenuhi, otomatis mahasiswa tidak lulus.',
+      tahap2:
+        'Gunakan kata kunci if, elif, dan else. Susun percabangan: if nilai >= 70:, lalu elif nilai >= 50:, dan diakhiri dengan else:. Jangan lupa tanda titik dua (:) di setiap akhir baris kondisi serta indentasi 4 spasi.',
+      tahap3:
+        'Di dalam blok elif nilai >= 50:, cetak string "REMEDIAL". Pastikan teks dicetak menggunakan huruf kapital persis sesuai instruksi: "LULUS", "REMEDIAL", atau "TIDAK LULUS".',
     },
     inputFormat: 'Satu baris berisi sebuah bilangan bulat yang menyatakan nilai praktikum mahasiswa.',
     outputFormat: 'Satu baris berisi teks status: LULUS, REMEDIAL, atau TIDAK LULUS.',
@@ -221,6 +244,14 @@ print(total_tabungan)`,
         'Pastikan perintah print(total) berada di luar blok perulangan for (tidak diindentasi) agar hasil akhir dicetak sekali.',
       ],
     },
+    hints: {
+      tahap1:
+        'Kita membutuhkan variabel penampung awal (akumulator) dengan nilai 0. Kemudian lakukan perulangan dari angka 1 hingga n, dan pada setiap putaran tambahkan angka tersebut ke dalam penampung.',
+      tahap2:
+        'Gunakan perulangan for dengan fungsi range(1, n + 1). Di dalam blok for, lakukan penambahan nilai dengan perintah total += i (atau total = total + i).',
+      tahap3:
+        'Ingat bahwa range(1, n) hanya berputar hingga n - 1, sehingga Anda wajib menulis range(1, n + 1). Pastikan baris print(total) tidak diindentasi (berada di luar loop for) agar hasil akhir dicetak sekali.',
+    },
     inputFormat: 'Satu baris berisi sebuah bilangan bulat positif n.',
     outputFormat: 'Satu baris berisi bilangan bulat total penjumlahan dari 1 hingga n.',
     constraints: ['1 <= n <= 10000'],
@@ -300,6 +331,14 @@ print(hasil)`,
         'Fungsi harus mengembalikan nilai menggunakan return, bukan langsung mencetaknya dengan print di dalam fungsi.',
         'Pastikan syarat kelulusan menggunakan operator >= 70 (inklusif), bukan > 70 agar nilai tepat 70 tetap terhitung lulus.',
       ],
+    },
+    hints: {
+      tahap1:
+        'Di dalam fungsi hitung_lulus, siapkan variabel penghitung (counter) mula-mula 0. Periksa setiap nilai di dalam list satu per satu. Jika nilai tersebut 70 atau lebih, tambahkan counter sebanyak 1.',
+      tahap2:
+        'Gunakan perulangan for nilai in daftar_nilai:. Di dalamnya, tambahkan percabangan if nilai >= 70: lalu naikkan jumlah_lulus += 1. Di baris akhir fungsi, kembalikan nilai penghitung dengan kata kunci return jumlah_lulus.',
+      tahap3:
+        'Fungsi ini harus mengembalikan nilai dengan return jumlah_lulus, bukan print(). Pemanggilan dan pencetakan hasil sudah ditangani di luar fungsi oleh print(hitung_lulus(data)).',
     },
     inputFormat: 'Satu baris berisi sekumpulan bilangan bulat nilai mahasiswa yang dipisahkan oleh spasi.',
     outputFormat: 'Satu baris berisi sebuah bilangan bulat yang menyatakan jumlah mahasiswa yang lulus (nilai >= 70).',
