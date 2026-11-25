@@ -9,6 +9,7 @@ import { AutoGraderModal } from './components/AutoGraderModal';
 import { SusSurveyModal } from './components/SusSurveyModal';
 import { AuthModal } from './components/AuthModal';
 import { LecturerDashboardModal } from './components/LecturerDashboardModal';
+import { CertificateModal } from './components/CertificateModal';
 import {
   type AuthUser,
   type UserRole,
@@ -37,6 +38,7 @@ export default function App() {
   const [activeProblemId, setActiveProblemId] = useState<string>(PROBLEMS[0].id);
   const [isSusOpen, setIsSusOpen] = useState(false);
   const [isLecturerDashboardOpen, setIsLecturerDashboardOpen] = useState(false);
+  const [isCertificateOpen, setIsCertificateOpen] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Engine configuration lifted to App so Dosen dashboard can control it
@@ -80,6 +82,7 @@ export default function App() {
     setIsGraderOpen(false);
     setIsSusOpen(false);
     setIsLecturerDashboardOpen(false);
+    setIsCertificateOpen(false);
   };
 
   const handleOpenGrader = (problemId?: string) => {
@@ -175,6 +178,9 @@ export default function App() {
   };
 
   const solvedCount = Object.values(solvedScores).filter((s) => s === 100).length;
+  const passedModulesCount = PROBLEMS.filter((p) => (solvedScores[p.id] ?? 0) >= 70).length;
+  const isEligibleForCertificate =
+    user?.role === 'mahasiswa' && passedModulesCount === PROBLEMS.length && PROBLEMS.length > 0;
 
   return (
     <div className="min-h-screen bg-white p-2 sm:p-3 overflow-x-hidden">
@@ -191,12 +197,16 @@ export default function App() {
             onToggleMenu={setIsMenuOpen}
             solvedCount={solvedCount}
             totalProblems={PROBLEMS.length}
+            isEligibleForCertificate={isEligibleForCertificate}
+            onOpenCertificate={() => setIsCertificateOpen(true)}
           />
 
           <CurriculumSection
             problems={PROBLEMS}
             solvedScores={solvedScores}
             onSelectProblem={(id) => handleOpenGrader(id)}
+            user={user}
+            onOpenCertificate={() => setIsCertificateOpen(true)}
           />
 
           <ArchitectureSection />
@@ -253,6 +263,15 @@ export default function App() {
         onExecutionModeChange={setExecutionMode}
         backendUrl={backendUrl}
         onBackendUrlChange={setBackendUrl}
+      />
+
+      {/* Modal e-Sertifikat Kelulusan */}
+      <CertificateModal
+        isOpen={isCertificateOpen}
+        onClose={() => setIsCertificateOpen(false)}
+        user={user}
+        problems={PROBLEMS}
+        solvedScores={solvedScores}
       />
     </div>
   );

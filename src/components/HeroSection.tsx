@@ -13,6 +13,8 @@ interface HeroSectionProps {
   onToggleMenu: (open: boolean) => void;
   solvedCount: number;
   totalProblems: number;
+  isEligibleForCertificate?: boolean;
+  onOpenCertificate?: () => void;
 }
 
 export function HeroSection({
@@ -26,6 +28,8 @@ export function HeroSection({
   onToggleMenu,
   solvedCount,
   totalProblems,
+  isEligibleForCertificate,
+  onOpenCertificate,
 }: HeroSectionProps) {
   return (
     <section
@@ -61,6 +65,8 @@ export function HeroSection({
         onOpenSus={onOpenSus}
         isMenuOpen={isMenuOpen}
         onToggleMenu={onToggleMenu}
+        isEligibleForCertificate={isEligibleForCertificate}
+        onOpenCertificate={onOpenCertificate}
       />
 
       {/* Main Editorial Hero Content */}

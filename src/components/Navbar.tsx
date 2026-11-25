@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import {
   ArrowUpRight,
+  Award,
   Code2,
   GraduationCap,
   LogIn,
@@ -20,6 +21,8 @@ interface NavbarProps {
   onOpenSus: () => void;
   isMenuOpen: boolean;
   onToggleMenu: (open: boolean) => void;
+  isEligibleForCertificate?: boolean;
+  onOpenCertificate?: () => void;
 }
 
 export function Navbar({
@@ -31,6 +34,8 @@ export function Navbar({
   onOpenSus,
   isMenuOpen,
   onToggleMenu,
+  isEligibleForCertificate = false,
+  onOpenCertificate,
 }: NavbarProps) {
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -99,6 +104,18 @@ export function Navbar({
                 <span className="font-medium max-w-[110px] truncate sm:max-w-none">{user.nama}</span>
                 <span className="opacity-65 font-mono text-[10px] sm:text-[11px] hidden md:inline">({user.nim})</span>
               </div>
+
+              {isEligibleForCertificate && onOpenCertificate && (
+                <button
+                  type="button"
+                  onClick={onOpenCertificate}
+                  title="Klaim & Lihat e-Sertifikat Kelulusan"
+                  className="inline-flex items-center gap-1 rounded-full border border-amber-300/40 bg-amber-400/20 px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-400/30 transition-colors shadow-xs"
+                >
+                  <Award className="h-3.5 w-3.5 text-amber-300" />
+                  <span className="hidden min-[480px]:inline">e-Sertifikat</span>
+                </button>
+              )}
 
               <button
                 type="button"
@@ -263,6 +280,20 @@ export function Navbar({
                     <span>Buka Dashboard Rekap</span>
                   </button>
                 ) : null}
+
+                {user && user.role === 'mahasiswa' && isEligibleForCertificate && onOpenCertificate && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onToggleMenu(false);
+                      onOpenCertificate();
+                    }}
+                    className="inline-flex items-center gap-2 rounded-full border border-amber-300/50 bg-amber-400/20 px-6 py-3 text-sm font-medium text-amber-200 hover:bg-amber-400/30 transition-colors"
+                  >
+                    <Award className="h-4 w-4 text-amber-300" />
+                    <span>Lihat e-Sertifikat Kelulusan</span>
+                  </button>
+                )}
 
                 <button
                   type="button"
