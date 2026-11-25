@@ -55,11 +55,11 @@ export function Navbar({
 
   return (
     <>
-      <header className="relative z-20 flex items-center justify-between gap-2 sm:gap-4 px-3.5 py-4 sm:px-10 lg:px-14">
-        {/* Kiri: Navigasi desktop halus */}
+      <header className="relative z-20 flex items-center justify-between gap-2 sm:gap-4 px-3.5 py-3.5 sm:px-8 lg:px-10 xl:px-12 lg:grid lg:grid-cols-[1fr_auto_1fr]">
+        {/* Kolom 1 (Kiri): Navigasi desktop halus */}
         <nav
           aria-label="Navigasi utama"
-          className="hidden md:flex items-center gap-8 text-sm font-normal text-white/80"
+          className="hidden lg:flex items-center gap-5 xl:gap-7 text-sm font-normal text-white/80 min-w-0 justify-start"
         >
           {navLinks.map((link) => (
             <a
@@ -72,38 +72,44 @@ export function Navbar({
           ))}
         </nav>
 
-        {/* Tengah: Logo terminal < > + PYGRADE */}
-        <a
-          href="#"
-          className="flex items-center gap-1.5 sm:gap-2.5 text-white whitespace-nowrap shrink-0 md:absolute md:left-1/2 md:-translate-x-1/2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5790e6] rounded-md px-1"
-          aria-label="PyGrade UTU Beranda"
-        >
-          <span className="inline-flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-[#5790e6]">
-            <Code2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
-          </span>
-          <span className="text-xs sm:text-base uppercase tracking-[0.15em] sm:tracking-[0.2em] font-medium text-white">
-            PYGRADE
-          </span>
-        </a>
+        {/* Kolom 2 (Tengah): Logo terminal < > + PYGRADE (bebas overlap) */}
+        <div className="flex items-center lg:justify-center shrink-0">
+          <a
+            href="#"
+            className="flex items-center gap-1.5 sm:gap-2.5 text-white whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5790e6] rounded-md px-1"
+            aria-label="PyGrade UTU Beranda"
+          >
+            <span className="inline-flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-lg border border-white/20 bg-white/10 text-[#5790e6]">
+              <Code2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+            </span>
+            <span className="text-xs sm:text-base uppercase tracking-[0.15em] sm:tracking-[0.2em] font-medium text-white">
+              PYGRADE
+            </span>
+          </a>
+        </div>
 
-        {/* Kanan: Profil/Login User + Tombol Mulai Coding + Menu Layar Penuh */}
-        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0 ml-auto md:ml-0">
+        {/* Kolom 3 (Kanan): Profil/Login User + Tombol Mulai Coding + Menu Layar Penuh */}
+        <div className="flex items-center justify-end gap-1.5 sm:gap-2 shrink-0 min-w-0 ml-auto lg:ml-0">
           {/* Status Login User */}
           {!user ? (
             <button
               type="button"
               onClick={() => onOpenAuth('mahasiswa')}
-              className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-white/20 transition-colors whitespace-nowrap"
+              className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 sm:px-3.5 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-white/20 transition-colors whitespace-nowrap shrink-0"
             >
               <LogIn className="h-3.5 w-3.5 text-[#8fb8f3]" />
               <span>Masuk / Login</span>
             </button>
           ) : user.role === 'mahasiswa' ? (
-            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
-              <div className="flex items-center gap-1.5 bg-white/10 border border-white/15 rounded-full px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs text-white max-w-[160px] sm:max-w-none min-w-0">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink-0">
+              <div className="flex items-center gap-1.5 bg-white/10 border border-white/15 rounded-full px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs text-white max-w-[150px] sm:max-w-[200px] lg:max-w-[240px] xl:max-w-none min-w-0">
                 <GraduationCap className="h-3.5 w-3.5 text-[#5790e6] shrink-0" />
-                <span className="font-medium max-w-[110px] truncate sm:max-w-none">{user.nama}</span>
-                <span className="opacity-65 font-mono text-[10px] sm:text-[11px] hidden md:inline">({user.nim})</span>
+                <span className="font-medium max-w-[80px] sm:max-w-[100px] lg:max-w-[120px] xl:max-w-[130px] truncate">
+                  {user.nama}
+                </span>
+                <span className="opacity-65 font-mono text-[10px] sm:text-[11px] hidden xl:inline shrink-0">
+                  ({user.nim})
+                </span>
               </div>
 
               {isEligibleForCertificate && onOpenCertificate && (
@@ -111,9 +117,9 @@ export function Navbar({
                   type="button"
                   onClick={onOpenCertificate}
                   title="Klaim & Lihat e-Sertifikat Kelulusan"
-                  className="inline-flex items-center gap-1 rounded-full border border-amber-300/40 bg-amber-400/20 px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-400/30 transition-colors shadow-xs"
+                  className="inline-flex items-center gap-1 rounded-full border border-amber-300/40 bg-amber-400/20 px-2.5 py-1 sm:px-3 sm:py-1.5 text-xs font-medium text-amber-200 hover:bg-amber-400/30 transition-colors shadow-xs shrink-0"
                 >
-                  <Award className="h-3.5 w-3.5 text-amber-300" />
+                  <Award className="h-3.5 w-3.5 text-amber-300 shrink-0" />
                   <span className="hidden min-[480px]:inline">e-Sertifikat</span>
                 </button>
               )}
@@ -122,18 +128,18 @@ export function Navbar({
                 type="button"
                 onClick={onLogout}
                 title="Keluar dari sesi"
-                className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/5 px-2 py-1 sm:px-3 sm:py-1.5 text-xs text-white/80 hover:bg-rose-500/20 hover:text-rose-200 hover:border-rose-400/40 transition-colors"
+                className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/5 px-2 py-1 sm:px-2.5 sm:py-1.5 text-xs text-white/80 hover:bg-rose-500/20 hover:text-rose-200 hover:border-rose-400/40 transition-colors shrink-0"
               >
-                <LogOut className="h-3 w-3" />
+                <LogOut className="h-3 w-3 shrink-0" />
                 <span className="hidden sm:inline">Keluar</span>
               </button>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 sm:gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 shrink-0">
               <button
                 type="button"
                 onClick={onOpenLecturerDashboard}
-                className="inline-flex items-center gap-1.5 rounded-full bg-[#2563c9] px-3 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-medium text-white hover:bg-[#3171d8] transition-colors shadow-sm whitespace-nowrap"
+                className="inline-flex items-center gap-1.5 rounded-full bg-[#2563c9] px-3 py-1.5 sm:px-3.5 sm:py-1.5 text-xs sm:text-sm font-medium text-white hover:bg-[#3171d8] transition-colors shadow-sm whitespace-nowrap shrink-0"
               >
                 <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
                 <span>Dashboard Rekap</span>
@@ -143,9 +149,9 @@ export function Navbar({
                 type="button"
                 onClick={onLogout}
                 title="Keluar dari sesi dosen"
-                className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/5 px-2 py-1 sm:px-3 sm:py-1.5 text-xs text-white/80 hover:bg-rose-500/20 hover:text-rose-200 hover:border-rose-400/40 transition-colors"
+                className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-white/5 px-2 py-1 sm:px-2.5 sm:py-1.5 text-xs text-white/80 hover:bg-rose-500/20 hover:text-rose-200 hover:border-rose-400/40 transition-colors shrink-0"
               >
-                <LogOut className="h-3 w-3" />
+                <LogOut className="h-3 w-3 shrink-0" />
                 <span className="hidden sm:inline">Keluar</span>
               </button>
             </div>
@@ -155,11 +161,11 @@ export function Navbar({
           <button
             type="button"
             onClick={() => onOpenGrader()}
-            className="group hidden sm:inline-flex items-center gap-2 rounded-full bg-white px-4 sm:px-5 py-2.5 text-xs sm:text-sm font-medium text-[#0f2f63] hover:bg-[#eaf1fd] transition-colors duration-150 whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5790e6]"
+            className="group hidden sm:inline-flex items-center gap-1.5 sm:gap-2 rounded-full bg-white px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-[#0f2f63] hover:bg-[#eaf1fd] transition-colors duration-150 whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5790e6]"
           >
             <span>Mulai Coding</span>
             <ArrowUpRight
-              className="h-4 w-4 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              className="h-3.5 w-3.5 sm:h-4 sm:w-4 transition-transform duration-150 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
               aria-hidden="true"
             />
           </button>
@@ -169,7 +175,7 @@ export function Navbar({
             onClick={() => onToggleMenu(true)}
             aria-label="Buka menu navigasi layar penuh"
             aria-expanded={isMenuOpen}
-            className="inline-flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white hover:bg-white/15 transition-colors duration-150 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5790e6]"
+            className="inline-flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-white/20 bg-white/5 text-white hover:bg-white/15 transition-colors duration-150 shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#5790e6]"
           >
             <Menu className="h-4 w-4" aria-hidden="true" />
           </button>
